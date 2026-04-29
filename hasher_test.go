@@ -5,8 +5,7 @@ import (
 )
 
 func TestHashPhone(t *testing.T) {
-	hasher := NewHasher()
-	expectedHash := hasher.Hash("9121234567")
+	expectedHash := HashPhone("09121234567")
 
 	tests := []struct {
 		input    string
@@ -27,7 +26,7 @@ func TestHashPhone(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := hasher.HashPhone(tt.input)
+			result := HashPhone(tt.input)
 			if result != tt.expected {
 				t.Errorf("input: %q, expected: %q, got: %q", tt.input, tt.expected, result)
 			}
