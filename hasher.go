@@ -4,8 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-
-	"github.com/mrrashidpour/iransanitize"
 )
 
 // KeyedHasher هش‌کننده یکطرفه با کلید مخفی
@@ -32,12 +30,6 @@ func (k *KeyedHasher) HashBytes(data []byte) string {
 	h := hmac.New(sha256.New, k.secret)
 	h.Write(data)
 	return hex.EncodeToString(h.Sum(nil))
-}
-
-// HashPhone هش شماره تلفن (نرمالایز شده)
-func (k *KeyedHasher) HashPhone(phone string) string {
-	phone = iransanitize.SanitizeMobile(phone)
-	return k.Hash(phone)
 }
 
 // Verify بررسی صحت متن با هش ذخیره شده
