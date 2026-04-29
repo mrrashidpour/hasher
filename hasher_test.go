@@ -5,7 +5,10 @@ import (
 )
 
 func TestHashPhone(t *testing.T) {
-	expectedHash := HashPhone("09121234567")
+	secretKey := "my-very-secret-key-2026"
+
+	hasher := NewKeyedHasher(secretKey)
+	expectedHash := hasher.Hash("09121234567")
 
 	tests := []struct {
 		input    string
@@ -26,7 +29,7 @@ func TestHashPhone(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := HashPhone(tt.input)
+			result := hasher.HashPhone(tt.input)
 			if result != tt.expected {
 				t.Errorf("input: %q, expected: %q, got: %q", tt.input, tt.expected, result)
 			}

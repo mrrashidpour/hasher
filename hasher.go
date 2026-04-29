@@ -1,60 +1,46 @@
 package hasher
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 
 	"github.com/mrrashidpour/iransanitize"
 )
 
-// Hash هش کردن یک رشته با SHA256
-func Hash(text string) string {
-	hash := sha256.Sum256([]byte(text))
-	return hex.EncodeToString(hash[:])
+// KeyedHasher هش‌کننده یکطرفه با کلید مخفی
+type KeyedHasher struct {
+	secret []byte
 }
 
-// HashBytes هش کردن داده باینری
-func HashBytes(data []byte) string {
-	hash := sha256.Sum256(data)
-	return hex.EncodeToString(hash[:])
+// NewKeyedHasher ایجاد هش‌کننده با کلید مخفی
+func NewKeyedHasher(secretKey string) *KeyedHasher {
+	return &KeyedHasher{
+		secret: []byte(secretKey),
+	}
 }
 
-// HashWithSalt هش کردن با نمک
-func HashWithSalt(text, salt string) string {
-	data := text + salt
-	hash := sha256.Sum256([]byte(data))
-	return hex.EncodeToString(hash[:])
+// Hash هش کردن متن با کلید مخفی (نتیجه همیشه ثابت برای ورودی یکسان)
+func (k *KeyedHasher) Hash(text string) string {
+	h := hmac.New(sha256.New, k.secret)
+	h.Write([]byte(text))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
-// Compare مقایسه متن ساده با هش ذخیره شده
-func Compare(plainText, hashedText string) bool {
-	return Hash(plainText) == hashedText
-}
-
-// CompareWithSalt مقایسه با نمک
-func CompareWithSalt(plainText, salt, hashedText string) bool {
-	return HashWithSalt(plainText, salt) == hashedText
+// HashBytes هش کردن داده باینری با کلید مخفی
+func (k *KeyedHasher) HashBytes(data []byte) string {
+	h := hmac.New(sha256.New, k.secret)
+	h.Write(data)
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 // HashPhone هش شماره تلفن (نرمالایز شده)
-func HashPhone(phone string) string {
+func (k *KeyedHasher) HashPhone(phone string) string {
 	phone = iransanitize.SanitizeMobile(phone)
-	return Hash(phone)
+	return k.Hash(phone)
 }
 
-// HashJSON هش کردن محتوای JSON
-func HashJSON(data interface{}) (string, error) {
-	bytes, err := json.Marshal(data)
-	if err != nil {
-		return "", err
-	}
-	return HashBytes(bytes), nil
-}
-
-// DoubleHash هش دو مرحله‌ای برای امنیت بیشتر
-func DoubleHash(text string) string {
-	firstHash := sha256.Sum256([]byte(text))
-	secondHash := sha256.Sum256(firstHash[:])
-	return hex.EncodeToString(secondHash[:])
+// Verify بررسی صحت متن با هش ذخیره شده
+func (k *KeyedHasher) Verify(text, hashedText string) bool {
+	return k.Hash(text) == hashedText
 }
